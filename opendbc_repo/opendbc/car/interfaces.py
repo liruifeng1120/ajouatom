@@ -217,7 +217,7 @@ class MyTrack:
     self.vLead_avg = FirstOrderFilter(self.vLead, 0.1, self.dt)
     self.aLead_avg = FirstOrderFilter(self.aLead, 0.15, self.dt)
     self.jLead_avg = FirstOrderFilter(self.jLead, 0.4, self.dt)
-        
+
   def update(self, radar_point):
     self.vLead = radar_point.vLead
     """
@@ -279,7 +279,7 @@ class RadarInterfaceBase(ABC):
     else:
       self.init_samples.append(rcv_time)
 
-     
+
   def update_carrot(self, v_ego, rcv_time, can_packets: list[tuple[int, list[CanData]]]) -> structs.RadarDataT | None:
     self.v_ego_hist.append(v_ego)
     self.v_ego = self.v_ego_hist[0]
@@ -301,7 +301,7 @@ class RadarInterfaceBase(ABC):
 
         radar_point.aLead = float(new_tracks[track_id].aLead)
         radar_point.jLead = float(new_tracks[track_id].jLead)
-                
+
       self.tracks = new_tracks
       """
       if self.last_timestamp is not None:
@@ -340,7 +340,7 @@ class CarInterfaceBase(ABC):
     dbc_names = {bus: cp.dbc_name for bus, cp in self.can_parsers.items()}
     self.CC: CarControllerBase = self.CarController(dbc_names, CP)
 
-    Params().put('LongitudinalPersonalityMax', "3")
+    Params().put('LongitudinalPersonalityMax', "4")
     eps_firmware = str(next((fw.fwVersion for fw in CP.carFw if fw.ecu == "eps"), ""))
 
     comma_nnff_supported = self.check_comma_nn_ff_support(CP.carFingerprint)
@@ -348,7 +348,7 @@ class CarInterfaceBase(ABC):
 
     self.use_nnff = not comma_nnff_supported and nnff_supported and Params().get_bool("NNFF")
     self.use_nnff_lite = not self.use_nnff and Params().get_bool("NNFFLite")
-    
+
   def get_ff_nn(self, x):
     return self.lat_torque_nn_model.evaluate(x)
 
@@ -360,7 +360,7 @@ class CarInterfaceBase(ABC):
   def initialize_lat_torque_nn(self, car, eps_firmware) -> bool:
     self.lat_torque_nn_model = get_nn_model(car, eps_firmware)
     return self.lat_torque_nn_model is not None
-    
+
 
   def apply(self, c: structs.CarControl, now_nanos: int | None = None) -> tuple[structs.CarControl.Actuators, list[CanData]]:
     if now_nanos is None:
@@ -394,7 +394,7 @@ class CarInterfaceBase(ABC):
     ret.flags |= int(platform.config.flags)
 
     ret = cls._get_params(ret, candidate, fingerprint, car_fw, alpha_long, docs)
-   
+
     # Enable torque controller for all cars that do not use angle based steering
     if ret.steerControlType != structs.CarParams.SteerControlType.angle and Params().get_bool("NNFF"):
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
@@ -403,7 +403,7 @@ class CarInterfaceBase(ABC):
       if model is not None:
         Params().put_nonblocking("NNFFModelName", candidate.replace("_", " "))
         print(f"NNFF loaded... {model}")
-    
+
 
     if Params().get_bool("DisableMinSteerSpeed"):
       ret.minSteerSpeed = 0.
@@ -568,7 +568,7 @@ class CarStateBase(ABC):
 
     v_ego_x = self.v_ego_kf.update(v_ego_raw)
     return float(v_ego_x[0]), float(v_ego_x[1])
-  
+
   def update_clu_speed_kf(self, v_ego_raw):
     if abs(v_ego_raw - self.v_ego_clu_kf.x[0][0]) > 2.0:  # Prevent large accelerations when car starts at non zero speed
       self.v_ego_clu_kf.set_x([[v_ego_raw], [0.0]])

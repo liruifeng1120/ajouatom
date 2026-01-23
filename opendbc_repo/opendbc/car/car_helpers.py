@@ -44,7 +44,7 @@ interfaces = load_interfaces(interface_names)
 
 def can_fingerprint(can_recv: CanRecvCallable) -> tuple[str | None, dict[int, dict]]:
   finger = gen_empty_fingerprint()
-  candidate_cars = {i: all_legacy_fingerprint_cars() for i in [0, 1]}  # attempt fingerprint on both bus 0 and 1
+  candidate_cars = {i: all_legacy_fingerprint_cars() for i in [0, 1, 4, 5]}  # attempt fingerprint on both bus 0 and 1
   frame = 0
   car_fingerprint = None
   done = False
@@ -166,11 +166,16 @@ def get_car(can_recv: CanRecvCallable, can_send: CanSendCallable, set_obd_multip
       from opendbc.car.gm.values import CAR as GM
       from opendbc.car.toyota.values import CAR as TOYOTA
       from opendbc.car.mazda.values import CAR as MAZDA
+      from opendbc.car.byd.values import CAR as BYD
       for platform in GM:
         for doc in platform.config.car_docs:
           if name == doc.name:
             return platform
       for platform in TOYOTA:
+        for doc in platform.config.car_docs:
+          if name == doc.name:
+            return platform
+      for platform in BYD:
         for doc in platform.config.car_docs:
           if name == doc.name:
             return platform
@@ -189,7 +194,7 @@ def get_car(can_recv: CanRecvCallable, can_send: CanSendCallable, set_obd_multip
 
   print(f"SelectedCar = {candidate}")
   Params().put("CarName", candidate)
-  
+
   CarInterface = interfaces[candidate]
   CP: CarParams = CarInterface.get_params(candidate, fingerprints, car_fw, alpha_long_allowed, docs=False)
   CP.carVin = vin
