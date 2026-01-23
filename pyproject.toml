@@ -67,6 +67,9 @@ dependencies = [
 
   # logreader
   "zstandard",
+    # new
+  "xattr",
+  "flask",
 ]
 
 [project.optional-dependencies]
